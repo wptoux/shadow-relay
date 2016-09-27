@@ -1,0 +1,15 @@
+#!/bin/sh
+N_PARAS = "$#"
+if [$N_PARAS!=4]; then
+	echo relay src_ip src_port dest_ip dest_port
+	exit 2
+fi
+src_ip = $1
+src_port = $2
+dest_ip = $3
+dest_port = $4
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A PREROUTING -p tcp --dport $src_port -j DNAT --to-destination $dest_ip:$dest_port 
+iptables -t nat -A POSTROUTING -p tcp -d $dest_ip --dport $dest_port -j SNAT --to-source $src_ip
+iptables -t nat -A PREROUTING -p udp --dport $src_port -j DNAT --to-destination $dest_ip:$dest_port 
+iptables -t nat -A POSTROUTING -p udp -d $dest_ip --dport $dest_port -j SNAT --to-source $src_ip
