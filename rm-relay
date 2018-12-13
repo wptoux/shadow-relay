@@ -1,0 +1,15 @@
+!/bin/bash
+N_PARAS="$#"
+if [ $N_PARAS -ne 4 ]; then
+        echo rm-relay local_ip local_port dest_ip dest_port
+        exit 2
+fi
+local_ip=$1
+local_port=$2
+dest_ip=$3
+dest_port=$4
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -D PREROUTING -p tcp --dport $local_port -j DNAT --to-destination $dest_ip:$dest_port
+iptables -t nat -D POSTROUTING -p tcp -d $dest_ip --dport $dest_port -j SNAT --to-source $local_ip
+iptables -t nat -D PREROUTING -p udp --dport $local_port -j DNAT --to-destination $dest_ip:$dest_port
+iptables -t nat -D POSTROUTING -p udp -d $dest_ip --dport $dest_port -j SNAT --to-source $local_ip
